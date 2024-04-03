@@ -1,0 +1,50 @@
+name: terraform
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - terraform/**/*
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps: 
+      - uses: actions/checkout@v3 
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_wrapper: false
+          
+      - name: TF init
+        shell: bash
+        run: |
+          set -eux
+          terraform init -upgrade -reconfigure \
+            -backend-config='skip_metadata_api_check=true' \
+            -backend-config='skip_region_validation=true' \
+            -backend-config='skip_credentials_validation=true' \
+            -backend-config='region=${{ secrets.AWS_REGION }}' \
+            -backend-config='bucket=uw2-terraform-state-bucket' \
+            -backend-config='key=docker-ecr/terraform-${{ env.ECR_REPO_NAME }}.tfstate' \
+            -backend-config='dynamodb_table=terraform-state' 
+        working-directory: terraform
+        
+      - name: Create ECR repo [TF apply]
+        shell: bash
+        run: |
+          set -eux
+          terraform apply -auto-approve 
+        working-directory: terraform

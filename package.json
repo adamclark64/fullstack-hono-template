@@ -1,0 +1,28 @@
+{
+  "name": "starter",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "start": "turbo start",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "build:image": "docker build -t fullstack-hono-sqlite . --progress=plain --no-cache",
+    "build:container": "docker run --name fullstack-hono-sqlite -p 3000:3000 -p 8080:8080 hono-sqlite",
+    "docker:ecr-login": "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 537041156478.dkr.ecr.us-west-2.amazonaws.com",
+    "docker:pull-latest": "docker pull 537041156478.dkr.ecr.us-west-2.amazonaws.com/fullstack-hono-sqlite:latest"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "prettier": "^3.1.1",
+    "turbo": "latest"
+  },
+  "packageManager": "pnpm@8.4.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "esbuild": "^0.19.12"
+  }
+}
